@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+             android:background="#FFFFF0"
+
+        >
+
+    <Button android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/buttonBluetooth"
+            android:textSize="20sp"
+            android:text="Start!"
+            android:textStyle="bold"
+            android:onClick="clickBluetooth"
+            android:minWidth="20dp"
+            android:minHeight="150dp"
+            android:background="#FFD700"
+            android:textColor="#000000"
+            android:layout_marginTop="100dp"
+            />
+    <Button android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/buttonCamera"
+            android:textSize="20sp"
+            android:text="Capture Video"
+            android:textStyle="bold"
+            android:onClick="clickCamera"
+            android:minWidth="20dp"
+            android:minHeight="150dp"
+            android:background="#ffb731"
+            android:textColor="#000000"
+            android:layout_marginTop="400dp"
+            />
+    <!--<Button android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/buttonSocket"
+            android:text="Socket"
+            android:textSize="20sp"
+            android:layout_marginTop="20dp"
+            android:onClick="clickSocket"
+            android:visibility="invisible"
+            />                -->
+
+</LinearLayout>

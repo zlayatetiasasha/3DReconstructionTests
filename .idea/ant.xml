@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AntConfiguration">
+    <buildFile url="file://$USER_HOME$/OpenCV-2.4.10-android-sdk/OpenCV-2.4.10-android-sdk/sdk/java/AndroidManifest.xml" />
+    <buildFile url="file://$USER_HOME$/OpenCV-2.4.10-android-sdk/OpenCV-2.4.10-android-sdk/sdk/java/lint.xml" />
+  </component>
+</project>

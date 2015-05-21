@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/3DReconstructionTests.iml" filepath="$PROJECT_DIR$/3DReconstructionTests.iml" />
+      <module fileurl="file://$USER_HOME$/OpenCV-2.4.10-android-sdk/OpenCV-2.4.10-android-sdk/sdk/java/sdk.iml" filepath="$USER_HOME$/OpenCV-2.4.10-android-sdk/OpenCV-2.4.10-android-sdk/sdk/java/sdk.iml" />
+    </modules>
+  </component>
+</project>
