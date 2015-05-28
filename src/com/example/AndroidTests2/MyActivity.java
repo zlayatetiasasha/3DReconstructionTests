@@ -82,13 +82,13 @@ public class MyActivity extends Activity {
         // mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.tutorial1_activity_native_surface_view);
 
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
+        mOpenCvCameraView.enableView();
         CameraListener list = new CameraListener();
         mOpenCvCameraView.setCvCameraViewListener(list);
 
         // setContentView(R.layout.main);
         textView = (TextView) findViewById(R.id.textViewcv);
         textView.setText("BLUETOOTH started! Play!");
-
 
 
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
@@ -184,13 +184,10 @@ public class MyActivity extends Activity {
     public static ArrayList<GyroVectorAngle> frameAngles = new ArrayList<GyroVectorAngle>();
     public static ArrayList<AccelVectorPath> framePaths = new ArrayList<AccelVectorPath>();
 
-    static {
-        OpenCVLoader.initDebug();
-    }
 
     public void onResume() {
         super.onResume();
-        OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_6, this, mLoaderCallback);
+        mOpenCvCameraView.enableView();
 
         listenerAccelerometer = new SensorEventListener() {
             @Override
@@ -252,34 +249,24 @@ public class MyActivity extends Activity {
                         t = event.timestamp * NSEC_TO_SEC;
                         deltaTFloat = t - t0;
 
+                        Mat a0m = new Mat(3, 1, CvType.CV_64FC1);
+                        a0m.put(0, 0, a0[0]);
+                        a0m.put(1, 0, a0[1]);
+                        a0m.put(2, 0, a0[2]);
+
+                        Mat tmpR = new Mat(3, 1, CvType.CV_64FC1);
+                        Core.gemm(currentRotation_mat, a0m, 1, Mat.zeros(3, 1, CvType.CV_64FC1), 1, tmpR);
+                        a0[0] = (float) tmpR.get(0, 0)[0];
+                        a0[1] = (float) tmpR.get(1, 0)[0];
+                        a0[2] = (float) tmpR.get(2, 0)[0];
+
 
                         v[0] = a0[0] * deltaTFloat;
                         v[1] = a0[1] * deltaTFloat;
                         v[2] = a0[2] * deltaTFloat;
 
-                        //v=v0+t*R*a0
-                      /*  Mat vel = new Mat();
-                        Mat acc = new Mat(3, 1, CvType.CV_64FC1);
-                        acc.put(0, 0, a0[0]);
-                        acc.put(1, 0, a0[1]);
-                        acc.put(2, 0, a0[2]);
 
-                        Mat Rb = new Mat(3, 3, CvType.CV_64FC1);
-                        for (int i = 0; i < 3; i++) {
-                            for (int j = 0; j < 3; j++) {
-                                Rb.put(i,j,currentRotation[i][j]);
-                            }
-                        }
 
-                        Scalar sc=new Scalar(deltaTFloat);
-                        Core.multiply(Rb, sc, Rb);
-
-                        Core.gemm(Rb, acc, 1, Mat.zeros(3, 1, CvType.CV_64FC1), 1, vel);
-
-                        v[0]=(float)vel.get(0,0)[0];
-                        v[1]=(float)vel.get(1,0)[0];
-                        v[2]=(float)vel.get(2,0)[0];
-*/
                         s[0] = v0[0] * deltaTFloat + (float) ((float) 1.0 / (float) 2.0) * a0[0] * deltaTFloat * deltaTFloat;
                         s[1] = v0[1] * deltaTFloat + (float) ((float) 1.0 / (float) 2.0) * a0[1] * deltaTFloat * deltaTFloat;
                         s[2] = v0[2] * deltaTFloat + (float) ((float) 1.0 / (float) 2.0) * a0[2] * deltaTFloat * deltaTFloat;
@@ -428,7 +415,7 @@ public class MyActivity extends Activity {
         };
 
         sensorManager.registerListener(listenerAccelerometer, accelerometer, SensorManager.SENSOR_DELAY_GAME);
-        sensorManager.registerListener(listenerGyroscope, gyroscope, SensorManager.SENSOR_DELAY_UI);
+        sensorManager.registerListener(listenerGyroscope, gyroscope, SensorManager.SENSOR_DELAY_GAME);
         // sensorManager.registerListener(listenerGravity, gravitySensor, SensorManager.SENSOR_DELAY_UI);
     }
 
@@ -477,22 +464,7 @@ public class MyActivity extends Activity {
         alert.show();
     }
 
-    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
-        @Override
-        public void onManagerConnected(int status) {
-            switch (status) {
-                case LoaderCallbackInterface.SUCCESS: {
-                    //Log.i(TAG, "OpenCV loaded successfully");
-                    mOpenCvCameraView.enableView();
-                }
-                break;
-                default: {
-                    super.onManagerConnected(status);
-                }
-                break;
-            }
-        }
-    };
+
 
 
     //private CameraBridgeViewBase mOpenCvCameraView;
@@ -520,8 +492,21 @@ public class MyActivity extends Activity {
     private float timestamp;
 
     public static float[][] currentRotation = new float[][]{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
-
+public static Mat currentRotation_mat=new Mat(3,3, CvType.CV_64FC1);
+public static boolean first_rot=true;
     public void calculateRotationMatrixGotFromSite(SensorEvent event) {
+        if(first_rot){
+            first_rot=false;
+            currentRotation_mat.put(0,0,1);
+            currentRotation_mat.put(0,1,0);
+            currentRotation_mat.put(0,2,0);
+            currentRotation_mat.put(1,0,0);
+            currentRotation_mat.put(1,1,1);
+            currentRotation_mat.put(1,2,0);
+            currentRotation_mat.put(2,0,0);
+            currentRotation_mat.put(2,1,0);
+            currentRotation_mat.put(2,2,1);
+        }
         if (timestamp != 0) {
             final float dT = (event.timestamp - timestamp) * NS2S;
             // Axis of the rotation sample, not normalized yet.
@@ -530,6 +515,7 @@ public class MyActivity extends Activity {
             float axisZ = event.values[2];
 
             // Calculate the angular speed of the sample
+            // magnitude = величина
             float omegaMagnitude = (float) Math.sqrt(axisX * axisX + axisY * axisY + axisZ * axisZ);
 
             // Normalize the rotation vector if it's big enough to get the axis
@@ -544,6 +530,8 @@ public class MyActivity extends Activity {
             // in order to get a delta rotation from this sample over the timestep
             // We will convert this axis-angle representation of the delta rotation
             // into a quaternion before turning it into the rotation matrix.
+
+            // все это - просто формула составления кватерниона
             float thetaOverTwo = omegaMagnitude * dT / 2.0f;
             float sinThetaOverTwo = (float) Math.sin(thetaOverTwo);
             float cosThetaOverTwo = (float) Math.cos(thetaOverTwo);
@@ -561,6 +549,22 @@ public class MyActivity extends Activity {
                         {deltaRotationMatrix[6], deltaRotationMatrix[7], deltaRotationMatrix[8]}};
 
                 currentRotation = times(currentRotation, rot);
+
+                float[] rot1 = new float[]{currentRotation[0][0], currentRotation[0][1], currentRotation[0][2],
+                        currentRotation[1][0], currentRotation[1][1], currentRotation[1][2],
+                        currentRotation[2][0], currentRotation[2][1], currentRotation[2][2],};
+
+
+                currentRotation_mat.put(0, 0, deltaRotationMatrix[0]);
+                currentRotation_mat.put(0, 1, deltaRotationMatrix[1]);
+                currentRotation_mat.put(0, 2, deltaRotationMatrix[2]);
+                currentRotation_mat.put(1, 0, deltaRotationMatrix[3]);
+                currentRotation_mat.put(1, 1, deltaRotationMatrix[4]);
+                currentRotation_mat.put(1, 2, deltaRotationMatrix[5]);
+                currentRotation_mat.put(2, 0, deltaRotationMatrix[6]);
+                currentRotation_mat.put(2, 1, deltaRotationMatrix[7]);
+                currentRotation_mat.put(2, 2, deltaRotationMatrix[8]);
+
             }
         }
         timestamp = event.timestamp;
